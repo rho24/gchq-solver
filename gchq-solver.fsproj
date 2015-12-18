@@ -47,6 +47,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="puzzle.fs" />
     <Compile Include="gchq-solver.fs" />
     <None Include="App.config" />
   </ItemGroup>
