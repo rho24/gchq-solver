@@ -4,8 +4,8 @@ open System
 
 type group = int list
 type groupsIntermediate = { FinishedGroups : group list; CurrentGroup : group}
-type CellResult = Unknown | Filled | Empty
-type AxisResult = Unknown | Pass | Fail
+type CellResult = Unknown | Black | White
+type TestResult = Indeterminate | Pass | Fail
 
 let row i (arr: 'T[,]) = arr.[i..i, *] |> Seq.cast<'T> |> Seq.toArray
 let column i (arr: 'T[,]) = arr.[*, i..i] |> Seq.cast<'T> |> Seq.toArray
@@ -24,16 +24,16 @@ let public foldi fold first source  =
 let convertPatternToResult grid :CellResult[,] =
   Array2D.map (fun v ->
     match v with
-    | 1 -> Filled
-    | _ -> CellResult.Unknown
+    | 1 -> Black
+    | _ -> Unknown
     ) grid
 
 let printRow (row) =
   for i in row do
     match i with
-    | CellResult.Unknown -> printf "?"
-    | CellResult.Filled -> printf "1"
-    | CellResult.Empty -> printf "0"
+    | Unknown -> printf "?"
+    | Black -> printf "1"
+    | White -> printf "0"
 
 let printGrid grid =
   let maxY = (Array2D.length1 grid) - 1
@@ -54,7 +54,7 @@ let printGridRotated grid =
 let getGroups (axis) =
   foldi (fun index acc elem -> 
     match elem with
-    | CellResult.Empty -> match List.length acc.CurrentGroup with
+    | White -> match List.length acc.CurrentGroup with
                             | 0 -> acc
                             | _ -> {acc with FinishedGroups = acc.CurrentGroup :: acc.FinishedGroups; CurrentGroup = []}
     | _ -> {acc with CurrentGroup = index :: acc.CurrentGroup}
@@ -76,7 +76,7 @@ let testAxis (axis) (test: int list) =
     | true -> Pass
     | false -> Fail
     
-  | _ -> Unknown
+  | _ -> Indeterminate
 
 let printResultGrid (grid) (rowTests : int list list) (columnTests : int list list) =
   let maxY = (Array2D.length1 grid) - 1
@@ -89,7 +89,7 @@ let printResultGrid (grid) (rowTests : int list list) (columnTests : int list li
     match result with
     | Pass -> printf "Y"
     | Fail -> printf "N"
-    | Unknown -> printf "?"
+    | Indeterminate -> printf "?"
   printfn ""
   printfn ""
   
@@ -101,7 +101,7 @@ let printResultGrid (grid) (rowTests : int list list) (columnTests : int list li
     match result with
     | Pass -> printf "Y  "
     | Fail -> printf "N  "
-    | Unknown -> printf "?  "
+    | Indeterminate -> printf "?  "
     printRow row
     printfn ""
   printfn ""
@@ -110,7 +110,7 @@ let rnd = Random()
 let addRandomGuess grid =
   let x = rnd.Next(0, 25)
   let y = rnd.Next(0, 25)
-  let z = if rnd.Next(0, 2) = 0 then Filled else Empty
+  let z = if rnd.Next(0, 2) = 0 then Black else White
   Array2D.mapi (fun i j v -> if i = x && j = y then z else v) grid
     
 [<EntryPoint>]
