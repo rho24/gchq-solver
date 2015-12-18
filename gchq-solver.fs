@@ -2,6 +2,11 @@ module gchq
 
 open System
 
+type group = int list
+type groupsIntermediate = { FinishedGroups : group list; CurrentGroup : group}
+type CellResult = Unknown | Filled | Empty
+type AxisResult = Unknown | Pass | Fail
+
 let row i (arr: 'T[,]) = arr.[i..i, *] |> Seq.cast<'T> |> Seq.toArray
 let column i (arr: 'T[,]) = arr.[*, i..i] |> Seq.cast<'T> |> Seq.toArray
 
@@ -16,9 +21,19 @@ let public foldi fold first source  =
         |> Array.fold(fun (prev,i) c -> (fold i prev c,i + 1)) (first,0)
         |> fst
 
-let printRow (row:int[]) =
+let convertPatternToResult grid :CellResult[,] =
+  Array2D.map (fun v ->
+    match v with
+    | 1 -> Filled
+    | _ -> CellResult.Unknown
+    ) grid
+
+let printRow (row) =
   for i in row do
-    printf "%i" i
+    match i with
+    | CellResult.Unknown -> printf "?"
+    | CellResult.Filled -> printf "1"
+    | CellResult.Empty -> printf "0"
 
 let printGrid grid =
   let maxY = (Array2D.length1 grid) - 1
@@ -36,17 +51,12 @@ let printGridRotated grid =
     printRow row
     printfn ""
 
-    
-type group = int list
-type groupsIntermediate = { FinishedGroups : group list; CurrentGroup : group}
-type AxisResult = Unknown | Pass | Fail 
-
-let getGroups (axis: int[]) =
+let getGroups (axis) =
   foldi (fun index acc elem -> 
     match elem with
-    | 0 -> match List.length acc.CurrentGroup with
-            | 0 -> acc
-            | _ -> {acc with FinishedGroups = acc.CurrentGroup :: acc.FinishedGroups; CurrentGroup = []}
+    | CellResult.Empty -> match List.length acc.CurrentGroup with
+                            | 0 -> acc
+                            | _ -> {acc with FinishedGroups = acc.CurrentGroup :: acc.FinishedGroups; CurrentGroup = []}
     | _ -> {acc with CurrentGroup = index :: acc.CurrentGroup}
     ) {FinishedGroups = []; CurrentGroup = []} axis
       |> fun acc -> match List.length acc.CurrentGroup with
@@ -54,7 +64,7 @@ let getGroups (axis: int[]) =
                       | _ -> acc.CurrentGroup :: acc.FinishedGroups
       
 
-let testAxis (axis: int[]) (test: int list) =
+let testAxis (axis) (test: int list) =
   let axisGroups = getGroups axis
   let axisGroupCount = List.length axisGroups
   let testCount = List.length test
@@ -68,9 +78,9 @@ let testAxis (axis: int[]) (test: int list) =
     
   | _ -> Unknown
 
-let printResultGrid grid (rowTests : int list list) (columnTests : int list list) =
+let printResultGrid (grid) (rowTests : int list list) (columnTests : int list list) =
   let maxY = (Array2D.length1 grid) - 1
-  
+
   let rowResults = List.map2 testAxis (rows grid) rowTests
   let columnResults = List.map2 testAxis (columns grid) columnTests
   
@@ -94,10 +104,23 @@ let printResultGrid grid (rowTests : int list list) (columnTests : int list list
     | Unknown -> printf "?  "
     printRow row
     printfn ""
+  printfn ""
+
+let rnd = Random()
+let addRandomGuess grid =
+  let x = rnd.Next(0, 25)
+  let y = rnd.Next(0, 25)
+  let z = if rnd.Next(0, 2) = 0 then Filled else Empty
+  Array2D.mapi (fun i j v -> if i = x && j = y then z else v) grid
     
 [<EntryPoint>]
 let main argv =
   // printGrid Puzzle.initialGrid
+  let start = convertPatternToResult Puzzle.initialGrid
+  let guess =   
+    [1..100] |> List.fold (fun acc e -> addRandomGuess acc) (convertPatternToResult Puzzle.initialGrid)
   
-  printResultGrid Puzzle.initialGrid Puzzle.rowTests Puzzle.colTests
+  printResultGrid start Puzzle.rowTests Puzzle.colTests
+  
+  printResultGrid guess Puzzle.rowTests Puzzle.colTests
   0 // return an integer exit code
