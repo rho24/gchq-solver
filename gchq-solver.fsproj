@@ -48,6 +48,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="puzzle.fs" />
+    <Compile Include="solver.fs" />
+    <Compile Include="PuzzleTests.fs" />
     <Compile Include="gchq-solver.fs" />
     <None Include="paket.references" />
     <None Include="paket.lock" />
