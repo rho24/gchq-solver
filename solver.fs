@@ -25,6 +25,12 @@ let cellPreferFirst first second =
   | (Unknown, _) -> second
   | _ -> first
 
+let cellIncompatible first second =
+  match (first, second) with
+  | (Black, White) -> true
+  | (White, Black) -> true
+  | _ -> false
+
 
 let row i (arr: 'T[,]) = arr.[i..i, *] |> Seq.cast<'T> |> Seq.toList
 let column i (arr: 'T[,]) = arr.[*, i..i] |> Seq.cast<'T> |> Seq.toList
@@ -138,6 +144,7 @@ let trySolveAxis axis (testGroups: int list) =
           |> List.collect (fun groupLength -> CellResult.White :: List.init groupLength (fun _ -> CellResult.Black))
           |> List.tail
 
+//  printfn "trySolve %A %A" axis testGroups
   let result = 
     match testGroups with
     | [] -> List.map (fun r -> CellResult.White) axis
@@ -147,9 +154,14 @@ let trySolveAxis axis (testGroups: int list) =
       | overlap when overlap = 0 ->
           testAnswer
       | overlap ->
+        let possibles =
           [0..overlap]
-            |> List.map (fun i -> List.replicate i CellResult.Unknown @ testAnswer @ List.replicate (overlap - i) CellResult.Unknown)
-            |> List.reduce (List.map2 cellPreferUnknown)
-            |> List.map2 cellPreferFirst axis
+            |> List.map (fun i -> List.replicate i CellResult.White @ testAnswer @ List.replicate (overlap - i) CellResult.White)
+            |> List.filter (fun r -> not (List.exists2 cellIncompatible axis r))
+            |> tap (printfn "%A")
+        if possibles.Length = 0 then axis else
+          possibles
+          |> List.reduce (List.map2 cellPreferUnknown)
+          |> List.map2 cellPreferFirst axis
       
   result

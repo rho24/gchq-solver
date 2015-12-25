@@ -9,22 +9,21 @@ open solver
 open Fuchu
 open PuzzleTests
 
-[<EntryPoint>]
-let main argv =
-  
+let guessPuzzle = fun () ->
   let origPosition = (Console.CursorLeft, Console.CursorTop)
   
   let start = convertPatternToResult Puzzle.initialGrid
-    
-//  run tests |> ignore
   let mutable guess = start
   for i in 1..100 do
-    Thread.Sleep(100)
+    Thread.Sleep(1000)
     guess <- 
       rows guess
       |> List.map2 trySolveAxis <| Puzzle.rowTests
       |> array2D
     
+    Console.SetCursorPosition origPosition
+    printResultGrid guess Puzzle.rowTests Puzzle.colTests |> Console.WriteLine
+
     guess <-
       columns guess
       |> List.map2 trySolveAxis <| Puzzle.colTests
@@ -34,4 +33,13 @@ let main argv =
     Console.SetCursorPosition origPosition
     printResultGrid guess Puzzle.rowTests Puzzle.colTests |> Console.WriteLine
     
+[<EntryPoint>]
+let main argv =
+  
+    
+//  run tests |> ignore
+  run brokenTests |> ignore
+
+//  guessPuzzle ()
+
   0 // return an integer exit code
