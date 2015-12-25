@@ -37,9 +37,9 @@ let guessPuzzle = fun () ->
 let main argv =
   
     
-//  run tests |> ignore
+  run tests |> ignore
   run brokenTests |> ignore
 
-//  guessPuzzle ()
+  guessPuzzle ()
 
   0 // return an integer exit code
