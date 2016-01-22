@@ -168,7 +168,7 @@ let rec getPossibles axisLength testGroups =
           else 
             [ for p in getPossibles (axisLength - possible.Length - 1) rest -> possible @ (List.replicate 1 W) @ p ] ]
 
-let trySolveAxis axis (testGroups : int list) = 
+let trySolveAxis axis (testGroups : int list) (possibles : CellResult list list) = 
   let axisGroups = getGroups axis
   let axisGroupCount = List.length axisGroups
   let testCount = List.length testGroups
@@ -189,11 +189,10 @@ let trySolveAxis axis (testGroups : int list) =
       match axis.Length - minimumSolutionWidth with
       | overlap when overlap = 0 -> testAnswer
       | overlap -> 
-        let possibles = 
-          getPossibles axis.Length testGroups |> List.filter (fun r -> not (List.exists2 cellIncompatible axis r))
-        if possibles.Length = 0 then axis
+        let filteredPossibles = possibles |> List.filter (fun r -> not (List.exists2 cellIncompatible axis r))
+        if filteredPossibles.Length = 0 then axis
         else 
-          possibles
+          filteredPossibles
           |> List.reduce (List.map2 cellPreferUnknown)
           |> List.map2 cellPreferFirst axis
   
