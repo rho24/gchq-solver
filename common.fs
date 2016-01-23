@@ -6,7 +6,7 @@ type CellResult =
   | U
   | B
   | W
-  
+
 type TestResult = 
   | Indeterminate
   | Pass
@@ -32,6 +32,16 @@ type group = int list
 type groupsIntermediate = 
   { FinishedGroups : group list
     CurrentGroup : group }
+
+let getAxis orientation index (arr : 'T [,]) = 
+  match orientation with
+  | Row -> row index arr
+  | Column -> column index arr
+
+let getAllAxis orientation (arr : 'T [,]) = 
+  match orientation with
+  | Row -> rows arr
+  | Column -> columns arr
 
 let getGroups (axis : CellResult list) = 
   axis

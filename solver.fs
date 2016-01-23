@@ -63,43 +63,29 @@ let trySolveAxis (axis : CellResult list) (testGroups : int list) (possibles : C
 
 let tryImproveSolution (state : PuzzleState) (possiblesCache : Map<int * int list, CellResult list list>) 
     (orientation : Axis) (index : int) = 
-  match orientation with
-  | Row -> 
-    let currentRowState = row index state.Cells
-    let test = state.RowTests.[index]
-    let possibles = possiblesCache.Item(currentRowState.Length, test)
-    let newRowState = trySolveAxis currentRowState test possibles
-    match currentRowState = newRowState with
+  let currentAxisState = getAxis orientation index state.Cells
+  if List.forall (fun c -> c <> U) currentAxisState then state
+  else 
+    let test = 
+      match orientation with
+      | Row -> state.RowTests.[index]
+      | Column -> state.ColumnTests.[index]
+    
+    let possibles = possiblesCache.Item(currentAxisState.Length, test)
+    let newAxisState = trySolveAxis currentAxisState test possibles
+    match currentAxisState = newAxisState with
     | true -> state
     | false -> 
       let change = 
         { Orientation = orientation
           Index = index
-          NewAxisState = newRowState }
+          NewAxisState = newAxisState }
       { state with Cells = 
-                     rows state.Cells
+                     getAllAxis orientation state.Cells
                      |> List.mapi (fun i r -> 
                           if i <> index then r
-                          else newRowState)
+                          else newAxisState)
                      |> array2D
-                   AxisChanges = change :: state.AxisChanges }
-  | Column -> 
-    let currentColumnState = column index state.Cells
-    let test = state.ColumnTests.[index]
-    let possibles = possiblesCache.Item(currentColumnState.Length, test)
-    let newColumnState = trySolveAxis currentColumnState test possibles
-    match currentColumnState = newColumnState with
-    | true -> state
-    | false -> 
-      let change = 
-        { Orientation = orientation
-          Index = index
-          NewAxisState = newColumnState }
-      { state with Cells = 
-                     columns state.Cells
-                     |> List.mapi (fun i r -> 
-                          if i <> index then r
-                          else newColumnState)
-                     |> array2D
-                     |> rotate
+                     |> if orientation = Column then rotate
+                        else id
                    AxisChanges = change :: state.AxisChanges }

@@ -62,6 +62,7 @@ let guessPuzzle =
     
     let finishedIndex = 
       seq { 0..1000 } |> Seq.tryFind (fun i -> 
+//                           Thread.Sleep 100
                            let testIndex = i % (width + height)
                            
                            let orientation = 
