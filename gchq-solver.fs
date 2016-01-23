@@ -2,78 +2,54 @@ module gchq
 
 open System
 open System.IO
-open System.Text
 open System.Threading
+open utility
+open common
+open possibles
 open solver
 open Fuchu
 open PuzzleTests
 
-type Axis = 
-  | Row
-  | Column
-
-type AxisChange = 
-  { Orientation : Axis
-    Index : int
-    NewAxisState : CellResult list }
-
-type PuzzleState = 
-  { RowTests : int list list
-    ColumnTests : int list list
-    Cells : CellResult [,]
-    AxisChanges : AxisChange list }
-
-let tryImproveSolution (state : PuzzleState) (possiblesCache : Map<int * int list, CellResult list list>) 
-    (orientation : Axis) (index : int) = 
-  match orientation with
-  | Row -> 
-    let currentRowState = row index state.Cells
-    let test = state.RowTests.[index]
-    let possibles = possiblesCache.Item(currentRowState.Length, test)
-    let newRowState = trySolveAxis currentRowState test possibles
-    match currentRowState = newRowState with
-    | true -> state
-    | false -> 
-      let change = 
-        { Orientation = orientation
-          Index = index
-          NewAxisState = newRowState }
-      { state with Cells = 
-                     rows state.Cells
-                     |> List.mapi (fun i r -> 
-                          if i <> index then r
-                          else newRowState)
-                     |> array2D
-                   AxisChanges = change :: state.AxisChanges }
-  | Column -> 
-    let currentColumnState = column index state.Cells
-    let test = state.ColumnTests.[index]
-    let possibles = possiblesCache.Item(currentColumnState.Length, test)
-    let newColumnState = trySolveAxis currentColumnState test possibles
-    match currentColumnState = newColumnState with
-    | true -> state
-    | false -> 
-      let change = 
-        { Orientation = orientation
-          Index = index
-          NewAxisState = newColumnState }
-      { state with Cells = 
-                     columns state.Cells
-                     |> List.mapi (fun i r -> 
-                          if i <> index then r
-                          else newColumnState)
-                     |> array2D
-                     |> rotate
-                   AxisChanges = change :: state.AxisChanges }
+let printResultGrid (grid) (rowTests : int list list) (columnTests : int list list) = 
+  use output = new StringWriter()
+  let rowResults = List.map2 testAxis (rows grid) rowTests
+  let columnResults = List.map2 testAxis (columns grid) columnTests
+  fprintf output "     "
+  for result in columnResults do
+    match result with
+    | Pass -> fprintf output "Y "
+    | Fail -> fprintf output "N "
+    | Indeterminate -> fprintf output "? "
+  fprintf output "\n\n   "
+  for i in 1..27 do
+    fprintf output "\u2588\u2588"
+  fprintfn output ""
+  for i in 0..(Array2D.length1 grid) - 1 do
+    let row = row i grid
+    let result = rowResults.[i]
+    match result with
+    | Pass -> fprintf output "Y  \u2588\u2588"
+    | Fail -> fprintf output "N  \u2588\u2588"
+    | Indeterminate -> fprintf output "?  \u2588\u2588"
+    for j in row do
+      match j with
+      | U -> fprintf output "??"
+      | B -> fprintf output "  "
+      | W -> fprintf output "\u2588\u2588"
+    fprintf output "\u2588\u2588\n"
+  fprintf output "   "
+  for i in 1..27 do
+    fprintf output "\u2588\u2588"
+  output.ToString()
 
 let guessPuzzle = 
   fun () -> 
     let start = convertPatternToResult Puzzle.initialGrid
     let width = Array2D.length2 start
     let height = Array2D.length1 start
-    let possiblesForRows = Puzzle.rowTests |> List.mapi (fun i x -> ((width, x), getPossibles width x))
+    let possiblesForRows = Puzzle.rowTests |> List.map (fun x -> ((width, x), getPossibles width x))
     printfn "Calculated row possibles"
-    let possiblesForColumns = Puzzle.colTests |> List.mapi (fun i x -> ((height, x), getPossibles height x))
+    let possiblesForColumns = Puzzle.colTests |> List.map (fun x -> ((height, x), getPossibles height x))
     printfn "Calculated column possibles"
     let possiblesCache = List.append possiblesForRows possiblesForColumns |> Map.ofList
     let origPosition = (Console.CursorLeft, Console.CursorTop)

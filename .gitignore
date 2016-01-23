@@ -44,6 +44,8 @@ _ReSharper*/
 *.ncrunchsolution
 *.ncrunchproject
 [Tt]est[Rr]esult*
+*.psess
+*.vsp
 
 #Project files
 [Bb]uild/

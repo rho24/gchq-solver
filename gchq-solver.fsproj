@@ -47,7 +47,10 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="utility.fs" />
     <Compile Include="puzzle.fs" />
+    <Compile Include="common.fs" />
+    <Compile Include="possibles.fs" />
     <Compile Include="solver.fs" />
     <Compile Include="PuzzleTests.fs" />
     <Compile Include="gchq-solver.fs" />

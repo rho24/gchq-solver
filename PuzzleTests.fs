@@ -1,7 +1,9 @@
 ﻿module PuzzleTests
 
 open Fuchu
+open common
 open solver
+open possibles
 
 let tests = 
   testList "tests" [ testCase "trySolveAxis 1" <| fun _ -> 
