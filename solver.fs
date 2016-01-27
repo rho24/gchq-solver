@@ -2,6 +2,7 @@
 
 open utility
 open common
+open possibles
 
 let cellPreferUnknown first second = 
   match (first, second) with
@@ -89,3 +90,35 @@ let tryImproveSolution (state : PuzzleState) (possiblesCache : Map<int * int lis
                      |> if orientation = Column then rotate
                         else id
                    AxisChanges = change :: state.AxisChanges }
+
+
+
+let solvePuzzle (cells : CellResult [,]) (rowTests : int list list) (colTests : int list list) =
+  let width = Array2D.length2 cells
+  let height = Array2D.length1 cells
+  let possiblesForRows = rowTests |> List.map (fun x -> ((width, x), getPossibles width x))
+  let possiblesForColumns = colTests |> List.map (fun x -> ((height, x), getPossibles height x))
+  let possiblesCache = List.append possiblesForRows possiblesForColumns |> Map.ofList
+  let mutable currentState = 
+      { RowTests = rowTests
+        ColumnTests = colTests
+        Cells = cells
+        AxisChanges = [] }
+  let finishedIndex = 
+      seq { 0..1000 } |> Seq.tryFind (fun i -> 
+                           let testIndex = i % (width + height)
+                           
+                           let orientation = 
+                             if testIndex < height then Row
+                             else Column
+                           
+                           let index = 
+                             match orientation with
+                             | Row -> testIndex
+                             | Column -> testIndex - height
+                           
+                           currentState <- tryImproveSolution currentState possiblesCache orientation index
+                           let finished = 
+                             rows currentState.Cells |> List.forall (fun r -> List.forall (fun c -> c <> U) r)
+                           finished)
+  currentState
