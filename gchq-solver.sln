@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "gchq-solver", "gchq-solver.fsproj", "{26B6BE5A-2869-4AEE-8B0B-F452F6FAC639}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "gchq-solver", "gchq-solver\gchq-solver.fsproj", "{26B6BE5A-2869-4AEE-8B0B-F452F6FAC639}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PuzzleSolversWeb", "..\PuzzleSolversWeb\PuzzleSolversWeb.fsproj", "{BD905C2C-4312-4173-949B-2CD9EF8A108C}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PuzzleSolversWeb", "PuzzleSolversWeb\PuzzleSolversWeb.fsproj", "{BD905C2C-4312-4173-949B-2CD9EF8A108C}"
 EndProject
 Global
 	GlobalSection(Performance) = preSolution

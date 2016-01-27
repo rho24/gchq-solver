@@ -1,0 +1,120 @@
+<div class="gchq">
+    <h1>GCHQ puzzle solver</h1>
+
+    <p>This is a solver for the <a href="http://www.gchq.gov.uk/press_and_media/news_and_features/Pages/Directors-Christmas-puzzle-2015.aspx">GCHQ christmas card puzzle</a>.</p>
+
+    <div class="well">
+        <button id="loadPuzzle" class="btn">Load Puzzle</button>
+        <button id="solvePuzzle" class="btn hidden">Solve</button>
+        <button id="resetPuzzle" class="btn hidden">Reset</button>
+    </div>
+    <div id="puzzleContainer" class="container">
+        <div id="loader" class="hidden">
+            Loading...
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="~/Scripts/handlebars-v4.0.5.js"></script>
+
+    <script>
+        Handlebars.registerHelper('ifBlack', function (v1, options) {
+            if (v1 === 'B') {
+                return options.fn(this);
+            }
+            return options.inverse(this);
+        });
+
+        var renderPuzzle = function (data) {
+            var source = $("#puzzle-template").html();
+            var template = Handlebars.compile(source);
+            var html = template(data);
+            $('#puzzleContainer').html(html);
+        }
+        var clonePuzzle = function (data) {
+            return data.map(function (row) {
+                return row.map(function (c) { return c; });
+            });
+        };
+        var addChanges = function (data, changes) {
+            var remainingChanges = changes.slice();
+            var change = remainingChanges.shift();
+            
+            if (change === undefined) {
+                $('#puzzleContainer table.puzzle').addClass('solved');
+                $('#resetPuzzle').removeClass('hidden');
+                return;
+            }
+            
+            var nextData = clonePuzzle(data);
+            
+            if (change.orientation === 'Row') {
+                nextData[change.index] = change.newAxisState
+            } else {
+                for (var i = 0; i < nextData.length; i++) {
+                    nextData[i][change.index] = change.newAxisState[i];
+                }
+            }
+
+            renderPuzzle(nextData);
+
+            setTimeout(function () {
+                addChanges(nextData, remainingChanges);
+            }, 50);
+        };
+
+        $(function () {
+            var puzzleData = null;
+            $('#loadPuzzle').click(function () {
+                $('#loadPuzzle').prop('disabled', true);
+                $('#loader').removeClass('hidden');
+                $.getJSON('/api/gchq', function (data) {
+                    puzzleData = data;
+                    
+                    renderPuzzle(puzzleData.puzzleStart);
+
+                    $('#solvePuzzle').removeClass('hidden');
+                    $('#loader').addClass('hidden');
+                });
+            });
+
+            $('#solvePuzzle').click(function () {
+                if (puzzleData === null)
+                    return;
+                
+                $('#solvePuzzle').prop('disabled', true);
+
+                addChanges(puzzleData.puzzleStart, puzzleData.changes);
+            });
+            
+            $('#resetPuzzle').click(function () {
+
+                renderPuzzle(puzzleData.puzzleStart);
+
+                $('#puzzleContainer table.puzzle').removeClass('solved');
+
+                $('#solvePuzzle').prop('disabled', false);
+                $('#resetPuzzle').addClass('hidden');
+            });
+        })
+    </script>
+    <script id="puzzle-template" type="text/x-handlebars-template">
+    <table class="table table-bordered puzzle">
+        <tbody>
+            {{#each this}}
+            <tr>
+                {{#each this}}
+                    {{#ifBlack this}}
+                        <td class="black"></td>
+                    {{else}}
+                        <td class="white"></td>
+                    {{/ifBlack}}
+                {{/each}}
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</script>
+}
