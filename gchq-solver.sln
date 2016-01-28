@@ -7,6 +7,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "gchq-solver", "gchq-solver\
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PuzzleSolversWeb", "PuzzleSolversWeb\PuzzleSolversWeb.fsproj", "{BD905C2C-4312-4173-949B-2CD9EF8A108C}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sudoku", "Sudoku\Sudoku.fsproj", "{94CBAF32-E94B-40FE-8D92-96FDABDBC9C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{BD905C2C-4312-4173-949B-2CD9EF8A108C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD905C2C-4312-4173-949B-2CD9EF8A108C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD905C2C-4312-4173-949B-2CD9EF8A108C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94CBAF32-E94B-40FE-8D92-96FDABDBC9C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94CBAF32-E94B-40FE-8D92-96FDABDBC9C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94CBAF32-E94B-40FE-8D92-96FDABDBC9C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94CBAF32-E94B-40FE-8D92-96FDABDBC9C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
