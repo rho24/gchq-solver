@@ -107,20 +107,9 @@ let pHard =
                      [ 2; 0; 0; 0; 1; 0; 0; 0; 0 ]
                      [ 0; 3; 0; 0; 0; 4; 0; 0; 0 ]
                      [ 0; 5; 0; 6; 7; 0; 0; 0; 0 ] ]
-
-//let simp = p |> SolverUtils.simplifyPossibles (p |> Puzzle.completeCells)
-
-let solved = pMedium |> Solver.solve
-
-//let solved2 = solved |> Solver.solveSecond
+                     
+let solved = pHard |> Solver.solve
 
 let complete = solved |> Puzzle.isComplete
 
 let valid = solved |> Puzzle.isValid
-
-//
-//let r1 = solved |> Puzzle.rowGroups |> List.item 1;;
-//
-//let r2 = {r1 with groupType = Square; index = 4; cells = List.init 9 Puzzle.parseIntToCell}
-//
-//Puzzle.replaceGroup (Some r2) solved;;

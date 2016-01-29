@@ -46,35 +46,44 @@ module Solver =
                           | _ -> c)) cells
       Some { group with cells = newCells }
   
-  let solveSecond puzzle = 
+  let solveCellRule rule puzzle = 
+    puzzle
+    |> Puzzle.cells
+    |> List.fold (fun p c -> 
+         c
+         |> rule
+         |> Puzzle.replaceCell
+         <| p) puzzle
+  
+  let solveGroupRule rule puzzle = 
     puzzle
     |> Puzzle.groups
     |> List.fold (fun p c -> 
          c
-         |> ruleMatchingPairs
+         |> rule
          |> Puzzle.replaceGroup
          <| p) puzzle
   
   let rec solve (puzzle : Puzzle) : Puzzle = 
     if puzzle |> Puzzle.isComplete then puzzle
     else 
-      let p1 = puzzle |> simplifyPossibles (puzzle |> Puzzle.completeCells)
+      let simplifiedPuzzle = puzzle |> simplifyPossibles (puzzle |> Puzzle.completeCells)
       
-      let p2 = 
-        p1
-        |> Puzzle.cells
-        |> List.fold (fun p c -> 
-             c
-             |> ruleOnePossibleLeft
-             |> Puzzle.replaceCell
-             <| p) p1
-      match p2 = puzzle with
-      | true -> puzzle
-      | false -> 
-        let p3 = solveSecond p2
-        match p3 = puzzle with
-        | true -> puzzle
-        | false -> solve p3
-// try cell based rule
-// if no changes try group based
-// if no changes try grid based (hooks?)
+      let rules = 
+        [ solveCellRule ruleOnePossibleLeft
+          solveGroupRule ruleMatchingPairs ]
+      
+      let newPattern = 
+        rules
+        |> List.scan (fun p r -> 
+             (p
+              |> List.head
+              |> r)
+             :: p) [ simplifiedPuzzle ]
+        |> List.tryFind (function 
+             | l1 :: l2 :: _ -> l1 <> l2
+             | _ -> false)
+      
+      match newPattern with
+      | Some(head :: _) -> solve head
+      | _ -> simplifiedPuzzle
