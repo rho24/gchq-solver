@@ -25,6 +25,7 @@ module Cell =
       |> List.filter (fun v -> v <> value)
       |> Possibles
   
+  let removeValues values cells = values |> List.fold (fun c v -> removeValue v c) cells
   let getSquare (x, y) = (x / 3) + 3 * (y / 3)
   
   let areRelated coords1 coords2 = 
@@ -50,7 +51,7 @@ type Puzzle =
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Puzzle = 
-  let private parseIntToCell i = 
+  let parseIntToCell i = 
     match i with
     | 1 -> Value One
     | 2 -> Value Two
@@ -128,14 +129,19 @@ module Puzzle =
   
   let isValid puzzle = 
     puzzle
-    |> groups
-    |> List.forall (fun { cells = c } -> 
-         c
-         |> List.choose (function 
-              | Value(v) -> Some v
-              | _ -> None)
-         |> List.groupBy (fun c -> c)
-         |> List.forall (fun (_, g) -> (List.length g) < 2))
+    |> cells
+    |> List.forall (function 
+         | _, _, Possibles(p) -> List.length p > 0
+         | _ -> true)
+    && puzzle
+       |> groups
+       |> List.forall (fun { cells = c } -> 
+            c
+            |> List.choose (function 
+                 | Value(v) -> Some v
+                 | _ -> None)
+            |> List.groupBy (fun c -> c)
+            |> List.forall (fun (_, g) -> (List.length g) < 2))
   
   let replaceCell (c : option<int * int * Cell>) puzzle = 
     match c with
@@ -144,4 +150,28 @@ module Puzzle =
       let (Puzzle grid) = puzzle
       let copy = Array2D.copy grid
       copy.[y, x] <- cell
+      Puzzle copy
+  
+  let replaceGroup (group : option<CellGroup>) puzzle = 
+    match group with
+    | None -> puzzle
+    | Some({ groupType = Square; index = index; cells = cells }) -> 
+      let (Puzzle grid) = puzzle
+      let copy = Array2D.copy grid
+      let startX = (index % 3) * 3
+      let startY = (index / 3) * 3
+      cells |> List.iteri (fun i c -> 
+                 let x = startX + i % 3
+                 let y = startY + i / 3
+                 copy.[y, x] <- c)
+      Puzzle copy
+    | Some({ groupType = Row; index = index; cells = cells }) -> 
+      let (Puzzle grid) = puzzle
+      let copy = Array2D.copy grid
+      cells |> List.iteri (fun i c -> copy.[index, i] <- c)
+      Puzzle copy
+    | Some({ groupType = Column; index = index; cells = cells }) -> 
+      let (Puzzle grid) = puzzle
+      let copy = Array2D.copy grid
+      cells |> List.iteri (fun i c -> copy.[i, index] <- c)
       Puzzle copy

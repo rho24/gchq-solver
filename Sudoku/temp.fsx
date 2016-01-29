@@ -112,7 +112,15 @@ let pHard =
 
 let solved = pMedium |> Solver.solve
 
+//let solved2 = solved |> Solver.solveSecond
+
 let complete = solved |> Puzzle.isComplete
 
 let valid = solved |> Puzzle.isValid
-//Puzzle.groups p2
+
+//
+//let r1 = solved |> Puzzle.rowGroups |> List.item 1;;
+//
+//let r2 = {r1 with groupType = Square; index = 4; cells = List.init 9 Puzzle.parseIntToCell}
+//
+//Puzzle.replaceGroup (Some r2) solved;;
