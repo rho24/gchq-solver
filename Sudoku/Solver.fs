@@ -2,7 +2,7 @@
 
 module SolverUtils =
 
-  let rec simplify (completeCells : (int*int*Value) list) puzzle =
+  let rec simplifyPossibles (completeCells : (int*int*Value) list) puzzle =
     match completeCells with
     | [] -> puzzle
     | (x,y,value) :: rest ->
@@ -13,10 +13,10 @@ module SolverUtils =
                                               pcell |> Cell.removeValue value 
                                             else pcell)
         |> Puzzle
-      simplify rest p2
+      simplifyPossibles rest p2
 
 module Solver =
   open SolverUtils
   let solve (puzzle:Puzzle) : Puzzle =
     puzzle
-    |> simplify (puzzle |> Puzzle.completeCells)
+    |> simplifyPossibles (puzzle |> Puzzle.completeCells)
