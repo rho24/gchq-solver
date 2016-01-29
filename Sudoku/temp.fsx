@@ -108,8 +108,7 @@ let pHard =
                      [ 0; 3; 0; 0; 0; 4; 0; 0; 0 ]
                      [ 0; 5; 0; 6; 7; 0; 0; 0; 0 ] ]
                      
-let solved = pHard |> Solver.solve
+let mediumSolved = pMedium |> Solver.solve
 
-let complete = solved |> Puzzle.isComplete
-
-let valid = solved |> Puzzle.isValid
+let hardSolved = pHard |> Solver.solve
+let hardValid = hardSolved |> Puzzle.isValid

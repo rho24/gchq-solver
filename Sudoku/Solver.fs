@@ -32,7 +32,10 @@ module Solver =
            | _ -> None)
       |> List.groupBy (fun c -> c)
       |> List.filter (function 
-           | (Possibles k, v) -> List.length k = 2 && List.length v = 2
+           | (Possibles k, v) -> 
+             let possiblesLength = List.length k
+             let cellsLength = List.length v
+             possiblesLength > 0 && possiblesLength < 9 && possiblesLength = cellsLength
            | _ -> false)
       |> List.map (fun (k, _) -> k)
     match pairs with
