@@ -36,10 +36,10 @@ let printPossibles =
 let print (Puzzle grid) =
     let sb = new System.Text.StringBuilder()
     Printf.bprintf sb "\n"
-    for i in 0..8 do
+    for y in 0..8 do
       let c = 
-        [ for j in 0..8 do
-            yield match grid.[i, j] with
+        [ for x in 0..8 do
+            yield match grid.[y, x] with
                   | Possibles p -> 
                     p
                     |> List.map valueToInt
@@ -64,7 +64,18 @@ let print (Puzzle grid) =
 
 fsi.AddPrinter(print)
 
-let p = 
+let pEmpty = 
+  Puzzle.parseList [ [ 0; 0; 0; 0; 0; 0; 0; 0; 0 ]
+                     [ 0; 0; 0; 0; 0; 0; 0; 0; 0 ]
+                     [ 0; 0; 0; 0; 0; 0; 0; 0; 0 ]
+                     [ 0; 0; 0; 0; 0; 0; 0; 0; 0 ]
+                     [ 0; 0; 0; 0; 0; 0; 0; 0; 0 ]
+                     [ 0; 0; 0; 0; 0; 0; 0; 0; 0 ]
+                     [ 0; 0; 0; 0; 0; 0; 0; 0; 0 ]
+                     [ 0; 0; 0; 0; 0; 0; 0; 0; 0 ]
+                     [ 0; 0; 0; 0; 0; 0; 0; 0; 0 ] ]
+
+let pEasy = 
   Puzzle.parseList [ [ 5; 3; 0; 0; 7; 0; 0; 0; 0 ]
                      [ 6; 0; 0; 1; 9; 5; 0; 0; 0 ]
                      [ 0; 9; 8; 0; 0; 0; 0; 6; 0 ]
@@ -74,6 +85,34 @@ let p =
                      [ 0; 6; 0; 0; 0; 0; 2; 8; 0 ]
                      [ 0; 0; 0; 4; 1; 9; 0; 0; 5 ]
                      [ 0; 0; 0; 0; 8; 0; 0; 7; 9 ] ]
+                     
+let pMedium = 
+  Puzzle.parseList [ [ 7; 0; 0; 0; 0; 0; 0; 0; 0 ]
+                     [ 0; 0; 1; 0; 7; 0; 0; 0; 8 ]
+                     [ 0; 8; 6; 9; 0; 2; 0; 7; 0 ]
+                     [ 0; 0; 2; 3; 0; 0; 0; 9; 0 ]
+                     [ 6; 9; 0; 0; 0; 0; 0; 8; 5 ]
+                     [ 0; 3; 0; 0; 0; 6; 2; 0; 0 ]
+                     [ 0; 6; 0; 2; 0; 5; 4; 3; 0 ]
+                     [ 9; 0; 0; 0; 8; 0; 7; 0; 0 ]
+                     [ 0; 0; 0; 0; 0; 0; 0; 0; 6 ] ]
 
-p |> Solver.solve
+let pHard = 
+  Puzzle.parseList [ [ 6; 0; 0; 2; 0; 0; 0; 4; 0 ]
+                     [ 3; 0; 0; 0; 0; 0; 0; 0; 8 ]
+                     [ 0; 0; 0; 1; 0; 0; 6; 5; 9 ]
+                     [ 4; 0; 0; 3; 0; 0; 0; 0; 7 ]
+                     [ 0; 1; 3; 0; 9; 0; 0; 0; 0 ]
+                     [ 0; 7; 0; 0; 0; 0; 5; 0; 0 ]
+                     [ 2; 0; 0; 0; 1; 0; 0; 0; 0 ]
+                     [ 0; 3; 0; 0; 0; 4; 0; 0; 0 ]
+                     [ 0; 5; 0; 6; 7; 0; 0; 0; 0 ] ]
 
+//let simp = p |> SolverUtils.simplifyPossibles (p |> Puzzle.completeCells)
+
+let solved = pMedium |> Solver.solve
+
+let complete = solved |> Puzzle.isComplete
+
+let valid = solved |> Puzzle.isValid
+//Puzzle.groups p2

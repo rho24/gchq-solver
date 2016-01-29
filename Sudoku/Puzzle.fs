@@ -25,7 +25,7 @@ module Cell =
       |> List.filter (fun v -> v <> value)
       |> Possibles
   
-  let getSquare (x, y) = (3 * y % 3) + x % 3
+  let getSquare (x, y) = (x / 3) + 3 * (y / 3)
   
   let areRelated coords1 coords2 = 
     match coords1, coords2 with
@@ -34,6 +34,16 @@ module Cell =
       match (getSquare coords1), (getSquare coords2) with
       | s1, s2 when s1 = s2 -> true
       | _ -> false
+
+type GroupType = 
+  | Square
+  | Row
+  | Column
+
+type CellGroup = 
+  { groupType : GroupType
+    index : int
+    cells : Cell list }
 
 type Puzzle = 
   | Puzzle of Cell [,]
@@ -70,25 +80,42 @@ module Puzzle =
          | Value c -> true
          | _ -> false)
   
+  let square i (Puzzle grid) = 
+    let x = (i % 3) * 3
+    let y = (i / 3) * 3
+    grid.[y..y + 2, x..x + 2] |> Seq.cast<Cell>
+  
+  let squareGroups puzzle = 
+    [ for i in 0..8 do
+        yield { groupType = Square
+                index = i
+                cells = square i puzzle |> List.ofSeq } ]
+  
   let row i (Puzzle grid) = grid.[i..i, *] |> Seq.cast<Cell>
   
-  let rows puzzle = 
-    seq { 
-      for i in 0..8 do
-        yield row i puzzle
-    }
+  let rowGroups puzzle = 
+    [ for i in 0..8 do
+        yield { groupType = Row
+                index = i
+                cells = row i puzzle |> List.ofSeq } ]
   
   let column i (Puzzle grid) = grid.[*, i..i] |> Seq.cast<Cell>
   
-  let columns puzzle = 
-    seq { 
-      for i in 0..8 do
-        yield column i puzzle
-    }
+  let columnGroups puzzle = 
+    [ for i in 0..8 do
+        yield { groupType = Column
+                index = i
+                cells = column i puzzle |> List.ofSeq } ]
+  
+  let groups puzzle = 
+    [ squareGroups puzzle
+      rowGroups puzzle
+      columnGroups puzzle ]
+    |> List.concat
   
   let cells (Puzzle grid) = 
     grid
-    |> Array2D.mapi (fun x y cell -> x, y, cell)
+    |> Array2D.mapi (fun y x cell -> x, y, cell)
     |> Seq.cast<int * int * Cell>
     |> List.ofSeq
   
@@ -98,3 +125,23 @@ module Puzzle =
     |> List.choose (function 
          | x, y, Value(v) -> Some(x, y, v)
          | _ -> None)
+  
+  let isValid puzzle = 
+    puzzle
+    |> groups
+    |> List.forall (fun { cells = c } -> 
+         c
+         |> List.choose (function 
+              | Value(v) -> Some v
+              | _ -> None)
+         |> List.groupBy (fun c -> c)
+         |> List.forall (fun (_, g) -> (List.length g) < 2))
+  
+  let replaceCell (c : option<int * int * Cell>) puzzle = 
+    match c with
+    | None -> puzzle
+    | Some(x, y, cell) -> 
+      let (Puzzle grid) = puzzle
+      let copy = Array2D.copy grid
+      copy.[y, x] <- cell
+      Puzzle copy
