@@ -49,6 +49,24 @@ module Solver =
                           | _ -> c)) cells
       Some { group with cells = newCells }
   
+  let ruleGuessSimplest puzzle = 
+    let smallestPossible = 
+      puzzle
+      |> Puzzle.cells
+      |> List.choose (fun c -> 
+           match c with
+           | _, _, Possibles(p) when List.length p <= 2 -> Some c
+           | _ -> None)
+      |> List.sortBy (function 
+           | _, _, (Possibles p) -> List.length p
+           | _ -> 0)
+      |> List.tryHead
+    match smallestPossible with
+    | None | Some(_, _, Value _) -> []
+    | Some(x, y, Possibles p) -> p |> List.map (fun v -> Some(x, y, Value v)
+                                                         |> Puzzle.replaceCell
+                                                         <| puzzle)
+  
   let solveCellRule rule puzzle = 
     puzzle
     |> Puzzle.cells
@@ -67,16 +85,16 @@ module Solver =
          |> Puzzle.replaceGroup
          <| p) puzzle
   
-  let rec solve (puzzle : Puzzle) : Puzzle = 
-    if puzzle |> Puzzle.isComplete then puzzle
+  let rec trySolve guesses (puzzle : Puzzle) : Puzzle option = 
+    let simplifiedPuzzle = puzzle |> simplifyPossibles (puzzle |> Puzzle.completeCells)
+    if simplifiedPuzzle |> Puzzle.isComplete then Some puzzle
+    else if not (simplifiedPuzzle |> Puzzle.isValid) then None
     else 
-      let simplifiedPuzzle = puzzle |> simplifyPossibles (puzzle |> Puzzle.completeCells)
-      
       let rules = 
         [ solveCellRule ruleOnePossibleLeft
           solveGroupRule ruleMatchingPairs ]
       
-      let newPattern = 
+      let patternChanges = 
         rules
         |> List.scan (fun p r -> 
              (p
@@ -87,6 +105,20 @@ module Solver =
              | l1 :: l2 :: _ -> l1 <> l2
              | _ -> false)
       
-      match newPattern with
-      | Some(head :: _) -> solve head
-      | _ -> simplifiedPuzzle
+      match patternChanges, guesses with
+      | Some(head :: _), _ -> trySolve guesses head
+      | _, g when g >= 10 -> Some simplifiedPuzzle
+      | _ -> 
+        let guessingRules = [ ruleGuessSimplest ]
+        
+        let guessedResult = 
+          guessingRules
+          |> List.collect (fun r -> simplifiedPuzzle |> r)
+          |> List.choose (fun p -> p |> trySolve (guesses + 1))
+          |> List.tryHead
+        guessedResult
+  
+  let solve puzzle = 
+    match trySolve 0 puzzle with
+    | Some solved -> solved
+    | None -> puzzle

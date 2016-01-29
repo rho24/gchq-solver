@@ -1,5 +1,11 @@
 ﻿#I @"C:\Users\rich\Documents\GitHub\gchq-solver\Sudoku"
+
+let (|>) value func = 
+  let result = func value
+  result
+
 #load "Scripts/load-project-debug.fsx"
+
 
 open Sudoku
 
@@ -112,3 +118,5 @@ let mediumSolved = pMedium |> Solver.solve
 
 let hardSolved = pHard |> Solver.solve
 let hardValid = hardSolved |> Puzzle.isValid
+
+let emptySolved = pEmpty |> Solver.solve
