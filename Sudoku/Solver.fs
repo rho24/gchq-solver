@@ -1,5 +1,9 @@
 ﻿namespace Sudoku
 
+type PuzzleSolution = 
+  { puzzle : Puzzle
+    audit : (string * Puzzle) list }
+
 module SolverUtils = 
   let rec simplifyPossibles completeCells puzzle = 
     match completeCells with
@@ -49,9 +53,9 @@ module Solver =
                           | _ -> c)) cells
       Some { group with cells = newCells }
   
-  let ruleGuessSimplest puzzle = 
+  let ruleGuessSimplest solution = 
     let smallestPossible = 
-      puzzle
+      solution.puzzle
       |> Puzzle.cells
       |> List.choose (fun c -> 
            match c with
@@ -63,32 +67,52 @@ module Solver =
       |> List.tryHead
     match smallestPossible with
     | None | Some(_, _, Value _) -> []
-    | Some(x, y, Possibles p) -> p |> List.map (fun v -> Some(x, y, Value v)
-                                                         |> Puzzle.replaceCell
-                                                         <| puzzle)
+    | Some(x, y, Possibles p) -> 
+      p |> List.map (fun v -> 
+             let newPuzzle = Some(x, y, Value v)
+                             |> Puzzle.replaceCell
+                             <| solution.puzzle
+             match newPuzzle = solution.puzzle with
+             | true -> solution
+             | false -> 
+               { solution with puzzle = newPuzzle
+                               audit = ("GuessCell", newPuzzle) :: solution.audit })
   
-  let solveCellRule rule puzzle = 
-    puzzle
+  let solveCellRule rule solution = 
+    solution.puzzle
     |> Puzzle.cells
-    |> List.fold (fun p c -> 
-         c
-         |> rule
-         |> Puzzle.replaceCell
-         <| p) puzzle
+    |> List.fold (fun s c -> 
+         let newPuzzle = 
+           c
+           |> rule
+           |> Puzzle.replaceCell
+           <| s.puzzle
+         match newPuzzle = s.puzzle with
+         | true -> s
+         | false -> 
+           { solution with puzzle = newPuzzle
+                           audit = ("CellReplace", newPuzzle) :: s.audit }) solution
   
-  let solveGroupRule rule puzzle = 
-    puzzle
+  let solveGroupRule rule solution = 
+    solution.puzzle
     |> Puzzle.groups
-    |> List.fold (fun p c -> 
-         c
-         |> rule
-         |> Puzzle.replaceGroup
-         <| p) puzzle
+    |> List.fold (fun s c -> 
+         let newPuzzle = 
+           c
+           |> rule
+           |> Puzzle.replaceGroup
+           <| s.puzzle
+         match newPuzzle = s.puzzle with
+         | true -> s
+         | false -> 
+           { solution with puzzle = newPuzzle
+                           audit = ("GroupReplace", newPuzzle) :: s.audit }) solution
   
-  let rec trySolve guesses (puzzle : Puzzle) : Puzzle option = 
-    let simplifiedPuzzle = puzzle |> simplifyPossibles (puzzle |> Puzzle.completeCells)
-    if simplifiedPuzzle |> Puzzle.isComplete then Some puzzle
-    else if not (simplifiedPuzzle |> Puzzle.isValid) then None
+  let rec trySolve guessDepth (solution : PuzzleSolution) : PuzzleSolution option = 
+    let simplifiedSolution = 
+      { solution with puzzle = solution.puzzle |> simplifyPossibles (solution.puzzle |> Puzzle.completeCells) }
+    if simplifiedSolution.puzzle |> Puzzle.isComplete then Some solution
+    else if not (simplifiedSolution.puzzle |> Puzzle.isValid) then None
     else 
       let rules = 
         [ solveCellRule ruleOnePossibleLeft
@@ -100,25 +124,28 @@ module Solver =
              (p
               |> List.head
               |> r)
-             :: p) [ simplifiedPuzzle ]
+             :: p) [ simplifiedSolution ]
         |> List.tryFind (function 
-             | l1 :: l2 :: _ -> l1 <> l2
+             | l1 :: l2 :: _ -> l1.puzzle <> l2.puzzle
              | _ -> false)
       
-      match patternChanges, guesses with
-      | Some(head :: _), _ -> trySolve guesses head
-      | _, g when g >= 10 -> Some simplifiedPuzzle
+      match patternChanges, guessDepth with
+      | Some(head :: _), _ -> trySolve guessDepth head
+      | _, g when g >= 10 -> Some simplifiedSolution
       | _ -> 
         let guessingRules = [ ruleGuessSimplest ]
         
         let guessedResult = 
           guessingRules
-          |> List.collect (fun r -> simplifiedPuzzle |> r)
-          |> List.choose (fun p -> p |> trySolve (guesses + 1))
+          |> List.collect (fun r -> simplifiedSolution |> r)
+          |> List.choose (fun p -> p |> trySolve (guessDepth + 1))
           |> List.tryHead
         guessedResult
   
   let solve puzzle = 
-    match trySolve 0 puzzle with
+    let solution = 
+      { puzzle = puzzle
+        audit = [] }
+    match trySolve 0 solution with
     | Some solved -> solved
-    | None -> puzzle
+    | None -> solution

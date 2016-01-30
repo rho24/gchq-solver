@@ -114,9 +114,23 @@ let pHard =
                      [ 0; 3; 0; 0; 0; 4; 0; 0; 0 ]
                      [ 0; 5; 0; 6; 7; 0; 0; 0; 0 ] ]
                      
+let easySolved = pMedium |> Solver.solve
+
 let mediumSolved = pMedium |> Solver.solve
 
 let hardSolved = pHard |> Solver.solve
-let hardValid = hardSolved |> Puzzle.isValid
 
-let emptySolved = pEmpty |> Solver.solve
+let easyS = easySolved.puzzle
+let easyValid = easySolved.puzzle |> Puzzle.isValid
+let easyMoves = easySolved.audit |> List.length
+let easyGuesses = easySolved.audit |> List.filter (fun s -> s = "GuessCell") |> List.length
+
+let mediumS = mediumSolved.puzzle
+let mediumValid = mediumSolved.puzzle |> Puzzle.isValid
+let mediumMoves = mediumSolved.audit |> List.length
+let mediumGuesses = mediumSolved.audit |> List.filter (fun (s,_) -> s = "GuessCell") |> List.length
+
+let hardS = hardSolved.puzzle
+let hardValid = hardSolved.puzzle |> Puzzle.isValid
+let hardMoves = hardSolved.audit |> List.length
+let hardGuesses = hardSolved.audit |> List.filter (fun s -> s = "GuessCell") |> List.length
