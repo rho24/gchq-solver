@@ -51,7 +51,7 @@ type Puzzle =
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Puzzle = 
-  let parseIntToCell i = 
+  let intToCell i = 
     match i with
     | 1 -> Value One
     | 2 -> Value Two
@@ -63,13 +63,25 @@ module Puzzle =
     | 8 -> Value Eight
     | 9 -> Value Nine
     | _ -> Possibles [ One; Two; Three; Four; Five; Six; Seven; Eight; Nine ]
+
+  let valueToInt v = 
+    match v with
+    | One -> 1
+    | Two -> 2
+    | Three -> 3
+    | Four -> 4
+    | Five -> 5
+    | Six -> 6
+    | Seven -> 7
+    | Eight -> 8
+    | Nine -> 9
   
   let parseList (grid : int list list) = 
     let a = array2D grid
     match Array2D.length1 a, Array2D.length2 a with
     | 9, 9 -> 
       a
-      |> Array2D.map parseIntToCell
+      |> Array2D.map intToCell
       |> Puzzle
     | _, _ -> failwith "incorrect grid"
   
